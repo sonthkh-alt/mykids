@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, TrendingUp, TrendingDown, Flame } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, Flame, Play } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { activeStudentStore } from '@/lib/active-student';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -22,6 +24,12 @@ interface ParentDashboardChild {
 
 export default function ParentDashboard() {
   const { user, logout } = useAuth();
+  const router = useRouter();
+
+  function startLearning(studentId: string) {
+    activeStudentStore.set(studentId);
+    router.push('/home');
+  }
 
   const { data: children, isLoading } = useQuery({
     queryKey: ['parent-dashboard'],
@@ -108,6 +116,9 @@ export default function ParentDashboard() {
             </div>
           )}
 
+          <Button size="lg" className="w-full" onClick={() => startLearning(c.studentId)}>
+            <Play className="h-5 w-5" /> Cho {c.displayName} học
+          </Button>
           <Link href={`/parent/reports/${c.studentId}`}>
             <Button variant="outline" size="sm" className="w-full">
               Xem báo cáo chi tiết

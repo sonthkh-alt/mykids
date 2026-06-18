@@ -1,6 +1,11 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Sparkles, Rocket, Globe2, Calculator, BookOpen, Code2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/auth-context';
 
 const worlds = [
   { icon: Globe2, name: 'English World', color: 'text-sky' },
@@ -11,6 +16,15 @@ const worlds = [
 ];
 
 export default function LandingPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(user.role === 'PARENT' ? '/parent' : '/home');
+    }
+  }, [user, loading, router]);
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 px-6 py-12 text-center">
       <div className="animate-bounce-in">
