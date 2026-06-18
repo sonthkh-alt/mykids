@@ -31,6 +31,19 @@ export class LearningController {
     return this.learning.listCourses(subject, grade ? Number(grade) : undefined);
   }
 
+  /** Lộ trình học (path) theo môn + lớp, kèm trạng thái mở khóa. */
+  @Get('path')
+  @Roles('STUDENT', 'PARENT', 'ADMIN')
+  async path(
+    @CurrentUser() user: AuthUser,
+    @Query('subject') subject: Subject,
+    @Query('grade') grade: string,
+    @Query('studentId') studentId: string,
+  ) {
+    await this.students.assertCanAccess(user, studentId);
+    return this.learning.getPath(studentId, subject, Number(grade));
+  }
+
   @Get('lessons/:id')
   @Roles('STUDENT', 'PARENT', 'ADMIN')
   getLesson(@Param('id') id: string) {

@@ -31,10 +31,66 @@ export class LearningService {
     });
   }
 
+  /**
+   * Lộ trình học kiểu Duolingo: danh sách bài theo thứ tự dễ→khó,
+   * chia theo "unit" (chủ đề), kèm trạng thái hoàn thành & mở khóa tuần tự.
+   */
+  async getPath(studentId: string, subject: Subject, grade: number) {
+    const courses = await this.prisma.course.findMany({
+      where: {
+        subject,
+        isPublished: true,
+        gradeMin: { lte: grade },
+        gradeMax: { gte: grade },
+      },
+      include: {
+        lessons: { where: { isPublished: true }, orderBy: { orderIndex: 'asc' } },
+      },
+      orderBy: { orderIndex: 'asc' },
+    });
+
+    const lessons = courses.flatMap((c) => c.lessons);
+    const recs = await this.prisma.learningRecord.findMany({
+      where: { studentId, completed: true, lessonId: { in: lessons.map((l) => l.id) } },
+      select: { lessonId: true },
+    });
+    const done = new Set(recs.map((r) => r.lessonId));
+
+    const flat = lessons.map((l) => ({
+      id: l.id,
+      title: l.title,
+      module: l.module,
+      estMinutes: l.estMinutes,
+      xpReward: l.xpReward,
+      completed: done.has(l.id),
+      unlocked: false,
+    }));
+    // Mở khóa tuần tự: bài đầu luôn mở; bài sau mở khi bài trước đã xong.
+    flat.forEach((it, i) => {
+      it.unlocked = i === 0 ? true : (flat[i - 1]?.completed ?? false);
+    });
+
+    // Gom theo chủ đề (giữ nguyên thứ tự) thành các "unit".
+    const units: { title: string; lessons: typeof flat }[] = [];
+    for (const it of flat) {
+      let last = units[units.length - 1];
+      if (!last || last.title !== it.module) {
+        last = { title: it.module, lessons: [] };
+        units.push(last);
+      }
+      last.lessons.push(it);
+    }
+
+    const completed = flat.filter((f) => f.completed).length;
+    const currentLessonId = flat.find((f) => f.unlocked && !f.completed)?.id ?? null;
+    return { subject, grade, total: flat.length, completed, currentLessonId, units };
+  }
+
   async getLesson(lessonId: string) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id: lessonId },
       include: {
+        course: { select: { subject: true, title: true } },
         exercises: {
           orderBy: { orderIndex: 'asc' },
           include: {

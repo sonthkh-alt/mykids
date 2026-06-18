@@ -20,7 +20,12 @@ interface Question {
   answerOptions: Option[];
 }
 interface Exercise { id: string; prompt: string; questions: Question[] }
-interface Lesson { id: string; title: string; exercises: Exercise[] }
+interface Lesson {
+  id: string;
+  title: string;
+  exercises: Exercise[];
+  course?: { subject: string };
+}
 
 type SubmitResult = XpEventResult & { correct: number; total: number };
 
@@ -180,7 +185,8 @@ export default function LessonPlayer({ params }: { params: Promise<{ id: string 
         result={result}
         onClose={() => {
           setResult(null);
-          router.push('/home');
+          const subject = lesson.course?.subject?.toLowerCase();
+          router.push(subject ? `/worlds/${subject}` : '/home');
         }}
       />
     </div>
