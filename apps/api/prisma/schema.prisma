@@ -1,0 +1,693 @@
+// AI Academy — Prisma Schema
+// PostgreSQL. Quy ước: id = cuid, snake_case ở DB (@map), camelCase ở Prisma client.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  ADMIN
+  PARENT
+  STUDENT
+}
+
+enum Subject {
+  ENGLISH
+  MATH
+  SCIENCE
+  READING
+  CODING
+  LIFE_SKILLS
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+}
+
+enum ProficiencyLevel {
+  BEGINNER
+  ELEMENTARY
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ExerciseType {
+  FLASHCARD
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  SPEAKING
+  LISTENING
+  WRITING
+  MATCHING
+  ORDERING
+  CODE_BLOCKS
+  OPEN_ENDED
+}
+
+enum QuestType {
+  ENGLISH
+  MATH
+  READING
+  MOVEMENT
+  CREATIVE
+}
+
+enum QuestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum BadgeRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum RewardKind {
+  AVATAR
+  THEME
+  POWER_UP
+  REAL_WORLD
+}
+
+enum AiPromptKey {
+  ENGLISH_TUTOR
+  MATH_TUTOR
+  SCIENCE_TUTOR
+  CODING_TUTOR
+  READING_COACH
+  STORY_CREATOR
+  DAILY_QUEST
+  PARENT_REPORT
+}
+
+enum AiRole {
+  SYSTEM
+  USER
+  ASSISTANT
+}
+
+enum FamilyRole {
+  PARENT
+  CHILD
+}
+
+enum FamilyChallengeKind {
+  PARENT_CHILD
+  WHOLE_FAMILY
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+enum RedemptionStatus {
+  PENDING
+  APPROVED
+  FULFILLED
+  REJECTED
+}
+
+// ============================================================
+// IDENTITY & ACCOUNTS
+// ============================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  fullName     String   @map("full_name")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  parent        Parent?
+  student       Student?
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  tokenHash  String    @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  userAgent  String?   @map("user_agent")
+  ipAddress  String?   @map("ip_address")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+model Parent {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  students       Student[]
+  familyMembers  FamilyMember[]
+
+  @@map("parents")
+}
+
+model Student {
+  id            String           @id @default(cuid())
+  userId        String?          @unique @map("user_id") // có thể đăng nhập riêng hoặc do phụ huynh quản
+  parentId      String           @map("parent_id")
+  displayName   String           @map("display_name")
+  grade         Int // 3..6
+  avatarId      String?          @map("avatar_id")
+  learningStyle LearningStyle    @default(VISUAL) @map("learning_style")
+  englishLevel  ProficiencyLevel @default(BEGINNER) @map("english_level")
+  mathLevel     ProficiencyLevel @default(BEGINNER) @map("math_level")
+  goal          String?
+  level         Int              @default(1)
+  xp            Int              @default(0)
+  streakDays    Int              @default(0) @map("streak_days")
+  lastActiveKey String?          @map("last_active_key") // YYYY-MM-DD theo timezone
+  timeZone      String           @default("Asia/Ho_Chi_Minh") @map("time_zone")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  user                 User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parent               Parent                 @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  avatar               Avatar?                @relation(fields: [avatarId], references: [id])
+  interests            StudentInterest[]
+  answers              StudentAnswer[]
+  learningRecords      LearningRecord[]
+  conversations        AiConversation[]
+  dailyQuests          StudentDailyQuest[]
+  xpLogs               XpLog[]
+  badges               StudentBadge[]
+  redemptions          RewardRedemption[]
+  reports              PerformanceReport[]
+  familyMembers        FamilyMember[]
+  challengeProgress    FamilyChallengeProgress[]
+  unlockedAvatars      StudentAvatar[]
+
+  @@index([parentId])
+  @@map("students")
+}
+
+model StudentInterest {
+  id        String  @id @default(cuid())
+  studentId String  @map("student_id")
+  topic     String // "robot", "minecraft", "dinosaur"...
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, topic])
+  @@map("student_interests")
+}
+
+// ============================================================
+// FAMILY
+// ============================================================
+
+model FamilyGroup {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  members    FamilyMember[]
+  challenges FamilyChallenge[]
+
+  @@map("family_groups")
+}
+
+model FamilyMember {
+  id        String     @id @default(cuid())
+  groupId   String     @map("group_id")
+  role      FamilyRole
+  parentId  String?    @map("parent_id")
+  studentId String?    @map("student_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  group   FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  parent  Parent?     @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student?    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@map("family_members")
+}
+
+// ============================================================
+// AVATAR
+// ============================================================
+
+model Avatar {
+  id         String  @id @default(cuid())
+  code       String  @unique
+  name       String
+  imageUrl   String  @map("image_url")
+  unlockCost Int     @default(0) @map("unlock_cost") // XP để mở khóa; 0 = mặc định
+  isDefault  Boolean @default(false) @map("is_default")
+
+  students       Student[]
+  studentAvatars StudentAvatar[]
+
+  @@map("avatars")
+}
+
+model StudentAvatar {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  avatarId   String   @map("avatar_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  avatar  Avatar  @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, avatarId])
+  @@map("student_avatars")
+}
+
+// ============================================================
+// LEARNING CONTENT
+// ============================================================
+
+model Course {
+  id          String   @id @default(cuid())
+  subject     Subject
+  title       String
+  slug        String   @unique
+  description String?
+  gradeMin    Int      @map("grade_min")
+  gradeMax    Int      @map("grade_max")
+  coverUrl    String?  @map("cover_url")
+  orderIndex  Int      @default(0) @map("order_index")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  lessons Lesson[]
+
+  @@index([subject])
+  @@map("courses")
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  courseId    String   @map("course_id")
+  title       String
+  slug        String
+  module      String // "Vocabulary", "Speaking", "Geometry"...
+  description String?
+  orderIndex  Int      @default(0) @map("order_index")
+  xpReward    Int      @default(20) @map("xp_reward")
+  estMinutes  Int      @default(10) @map("est_minutes")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  exercises       Exercise[]
+  learningRecords LearningRecord[]
+
+  @@unique([courseId, slug])
+  @@index([courseId])
+  @@map("lessons")
+}
+
+model Exercise {
+  id         String       @id @default(cuid())
+  lessonId   String       @map("lesson_id")
+  type       ExerciseType
+  prompt     String
+  orderIndex Int          @default(0) @map("order_index")
+  xpReward   Int          @default(5) @map("xp_reward")
+  metadata   Json? // dữ liệu phụ: audioUrl, imageUrl, starterCode...
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  lesson    Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions Question[]
+  answers   StudentAnswer[]
+
+  @@index([lessonId])
+  @@map("exercises")
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  exerciseId    String   @map("exercise_id")
+  text          String
+  explanation   String? // lời giải/giải thích từng bước
+  orderIndex    Int      @default(0) @map("order_index")
+  correctAnswer String?  @map("correct_answer") // cho fill-blank/open-ended chấm tự động
+
+  exercise      Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  answerOptions AnswerOption[]
+  studentAnswers StudentAnswer[]
+
+  @@index([exerciseId])
+  @@map("questions")
+}
+
+model AnswerOption {
+  id         String  @id @default(cuid())
+  questionId String  @map("question_id")
+  text       String
+  isCorrect  Boolean @default(false) @map("is_correct")
+  orderIndex Int     @default(0) @map("order_index")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("answer_options")
+}
+
+model StudentAnswer {
+  id          String   @id @default(cuid())
+  studentId   String   @map("student_id")
+  exerciseId  String   @map("exercise_id")
+  questionId  String?  @map("question_id")
+  response    String // câu trả lời thô (text / option id / code)
+  isCorrect   Boolean  @map("is_correct")
+  timeSpentMs Int?     @map("time_spent_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student  Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  exercise Exercise  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([exerciseId])
+  @@map("student_answers")
+}
+
+model LearningRecord {
+  id          String   @id @default(cuid())
+  studentId   String   @map("student_id")
+  lessonId    String   @map("lesson_id")
+  subject     Subject
+  completed   Boolean  @default(false)
+  accuracy    Float    @default(0) // 0..1
+  minutes     Int      @default(0)
+  xpEarned    Int      @default(0) @map("xp_earned")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson  Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@index([studentId, subject])
+  @@map("learning_records")
+}
+
+// ============================================================
+// AI
+// ============================================================
+
+model AiPrompt {
+  id          String      @id @default(cuid())
+  key         AiPromptKey @unique
+  name        String
+  description String?
+  systemPrompt String     @map("system_prompt")
+  model       String      @default("gpt-4o-mini")
+  temperature Float       @default(0.7)
+  maxTokens   Int         @default(800) @map("max_tokens")
+  version     Int         @default(1)
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  conversations AiConversation[]
+
+  @@map("ai_prompts")
+}
+
+model AiConversation {
+  id         String      @id @default(cuid())
+  studentId  String      @map("student_id")
+  promptKey  AiPromptKey @map("prompt_key")
+  promptId   String?     @map("prompt_id")
+  subject    Subject?
+  title      String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  student  Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  prompt   AiPrompt?   @relation(fields: [promptId], references: [id], onDelete: SetNull)
+  messages AiMessage[]
+  feedback AiFeedback[]
+
+  @@index([studentId])
+  @@map("ai_conversations")
+}
+
+model AiMessage {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  role           AiRole
+  content        String
+  tokens         Int?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("ai_messages")
+}
+
+model AiFeedback {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  rating         Int? // 1..5 do học sinh/phụ huynh đánh giá
+  helpful        Boolean?
+  note           String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("ai_feedback")
+}
+
+// ============================================================
+// DAILY QUEST
+// ============================================================
+
+model DailyQuest {
+  id          String    @id @default(cuid())
+  type        QuestType
+  title       String
+  description String
+  rewardXp    Int       @default(15) @map("reward_xp")
+  dateKey     String    @map("date_key") // YYYY-MM-DD bộ quest của ngày
+  studentId   String?   @map("student_id") // null = quest mẫu chung; có id = cá nhân hóa
+  generatedByAi Boolean @default(false) @map("generated_by_ai")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  studentQuests StudentDailyQuest[]
+
+  @@index([dateKey])
+  @@map("daily_quests")
+}
+
+model StudentDailyQuest {
+  id          String      @id @default(cuid())
+  studentId   String      @map("student_id")
+  questId     String      @map("quest_id")
+  dateKey     String      @map("date_key")
+  status      QuestStatus @default(PENDING)
+  progress    Int         @default(0) // 0..100
+  completedAt DateTime?   @map("completed_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  student Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quest   DailyQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questId])
+  @@index([studentId, dateKey])
+  @@map("student_daily_quests")
+}
+
+// ============================================================
+// GAMIFICATION
+// ============================================================
+
+model XpLog {
+  id        String   @id @default(cuid())
+  studentId String   @map("student_id")
+  amount    Int
+  reason    String // "LESSON_COMPLETED", "QUEST_DONE", "STREAK_BONUS"...
+  refType   String?  @map("ref_type")
+  refId     String?  @map("ref_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@map("xp_logs")
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  name        String
+  description String
+  iconUrl     String      @map("icon_url")
+  rarity      BadgeRarity @default(COMMON)
+  // điều kiện đạt huy hiệu, ví dụ { "type": "STREAK", "value": 7 }
+  criteria    Json
+
+  students StudentBadge[]
+
+  @@map("badges")
+}
+
+model StudentBadge {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  badgeId    String   @map("badge_id")
+  awardedAt  DateTime @default(now()) @map("awarded_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badge   Badge   @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, badgeId])
+  @@map("student_badges")
+}
+
+model Reward {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  iconUrl     String     @map("icon_url")
+  costXp      Int        @map("cost_xp")
+  kind        RewardKind
+  payload     Json? // ví dụ avatarId, themeCode
+  stock       Int? // null = không giới hạn
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  redemptions RewardRedemption[]
+
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id         String           @id @default(cuid())
+  studentId  String           @map("student_id")
+  rewardId   String           @map("reward_id")
+  costXp     Int              @map("cost_xp")
+  status     RedemptionStatus @default(PENDING)
+  approvedBy String?          @map("approved_by") // parent userId
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reward  Reward  @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("reward_redemptions")
+}
+
+// ============================================================
+// FAMILY CHALLENGE
+// ============================================================
+
+model FamilyChallenge {
+  id          String              @id @default(cuid())
+  groupId     String              @map("group_id")
+  kind        FamilyChallengeKind
+  title       String
+  description String
+  goalType    String              @map("goal_type") // "READ_TOGETHER", "ENGLISH_TALK", "MOVEMENT"
+  targetValue Int                 @map("target_value")
+  rewardXp    Int                 @default(30) @map("reward_xp")
+  status      ChallengeStatus     @default(ACTIVE)
+  startsAt    DateTime            @default(now()) @map("starts_at")
+  endsAt      DateTime?           @map("ends_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  group    FamilyGroup               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  progress FamilyChallengeProgress[]
+
+  @@index([groupId])
+  @@map("family_challenges")
+}
+
+model FamilyChallengeProgress {
+  id          String   @id @default(cuid())
+  challengeId String   @map("challenge_id")
+  studentId   String?  @map("student_id")
+  value       Int      @default(0)
+  note        String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  challenge FamilyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  student   Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([challengeId])
+  @@map("family_challenge_progress")
+}
+
+// ============================================================
+// REPORTS & AUDIT
+// ============================================================
+
+model PerformanceReport {
+  id          String   @id @default(cuid())
+  studentId   String   @map("student_id")
+  periodStart DateTime @map("period_start")
+  periodEnd   DateTime @map("period_end")
+  totalMinutes Int     @default(0) @map("total_minutes")
+  strengths   String[] // mảng text
+  weaknesses  String[]
+  aiSummary   String   @map("ai_summary")
+  breakdown   Json // [{subject, minutes, accuracy}]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, periodEnd])
+  @@map("performance_reports")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String
+  resource   String
+  resourceId String?  @map("resource_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}

@@ -1,0 +1,11 @@
+{
+  "name": "AI Academy",
+  "short_name": "AI Academy",
+  "description": "Học như chơi — Chơi mà học. Nền tảng giáo dục AI cho học sinh lớp 3-6.",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#F7F7F7",
+  "theme_color": "#58CC02",
+  "orientation": "portrait",
+  "categories": ["education", "kids"]
+}

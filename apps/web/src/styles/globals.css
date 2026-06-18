@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Baloo 2', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-cloud text-ink font-body antialiased;
+}
+
+/* Nút "3D" phong cách game: nhấn xuống khi click */
+.btn-pop {
+  @apply shadow-pop transition-all active:translate-y-1 active:shadow-none;
+}
+
+/* Thanh cuộn thân thiện trẻ em */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { @apply bg-brand/40 rounded-full; }

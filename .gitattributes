@@ -1,0 +1,8 @@
+# Chuẩn hóa line-ending về LF cho mọi file text
+* text=auto eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.webp binary
