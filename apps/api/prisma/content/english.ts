@@ -63,6 +63,60 @@ const THEMES: { theme: string; words: Word[] }[] = [
     { en: 'room', vi: 'căn phòng' }, { en: 'lamp', vi: 'cái đèn' }, { en: 'clock', vi: 'đồng hồ' },
     { en: 'TV', vi: 'tivi' }, { en: 'cup', vi: 'cái cốc' }, { en: 'key', vi: 'chìa khóa' },
   ]},
+  { theme: 'Jobs — Nghề nghiệp', words: [
+    { en: 'doctor', vi: 'bác sĩ' }, { en: 'teacher', vi: 'giáo viên' }, { en: 'farmer', vi: 'nông dân' },
+    { en: 'police', vi: 'cảnh sát' }, { en: 'driver', vi: 'tài xế' }, { en: 'cook', vi: 'đầu bếp' },
+    { en: 'nurse', vi: 'y tá' }, { en: 'pilot', vi: 'phi công' }, { en: 'singer', vi: 'ca sĩ' },
+    { en: 'worker', vi: 'công nhân' }, { en: 'artist', vi: 'họa sĩ' }, { en: 'engineer', vi: 'kỹ sư' },
+  ]},
+  { theme: 'Weather — Thời tiết', words: [
+    { en: 'sunny', vi: 'nắng' }, { en: 'rainy', vi: 'mưa' }, { en: 'cloudy', vi: 'nhiều mây' },
+    { en: 'windy', vi: 'gió' }, { en: 'hot', vi: 'nóng' }, { en: 'cold', vi: 'lạnh' },
+    { en: 'snow', vi: 'tuyết' }, { en: 'storm', vi: 'bão' }, { en: 'warm', vi: 'ấm áp' },
+    { en: 'cool', vi: 'mát mẻ' }, { en: 'fog', vi: 'sương mù' }, { en: 'rainbow', vi: 'cầu vồng' },
+  ]},
+  { theme: 'Sports — Thể thao', words: [
+    { en: 'football', vi: 'bóng đá' }, { en: 'basketball', vi: 'bóng rổ' }, { en: 'swimming', vi: 'bơi lội' },
+    { en: 'running', vi: 'chạy bộ' }, { en: 'cycling', vi: 'đạp xe' }, { en: 'tennis', vi: 'quần vợt' },
+    { en: 'badminton', vi: 'cầu lông' }, { en: 'ball', vi: 'quả bóng' }, { en: 'team', vi: 'đội' },
+    { en: 'win', vi: 'thắng' }, { en: 'jump', vi: 'nhảy' }, { en: 'play', vi: 'chơi' },
+  ]},
+  { theme: 'Fruits — Trái cây', words: [
+    { en: 'apple', vi: 'táo' }, { en: 'orange', vi: 'cam' }, { en: 'mango', vi: 'xoài' },
+    { en: 'grape', vi: 'nho' }, { en: 'watermelon', vi: 'dưa hấu' }, { en: 'pineapple', vi: 'dứa' },
+    { en: 'strawberry', vi: 'dâu tây' }, { en: 'lemon', vi: 'chanh' }, { en: 'peach', vi: 'đào' },
+    { en: 'coconut', vi: 'dừa' }, { en: 'papaya', vi: 'đu đủ' }, { en: 'guava', vi: 'ổi' },
+  ]},
+  { theme: 'Clothes — Quần áo', words: [
+    { en: 'shirt', vi: 'áo sơ mi' }, { en: 'dress', vi: 'váy' }, { en: 'hat', vi: 'cái mũ' },
+    { en: 'shoes', vi: 'giày' }, { en: 'socks', vi: 'tất' }, { en: 'pants', vi: 'quần dài' },
+    { en: 'coat', vi: 'áo khoác' }, { en: 'skirt', vi: 'chân váy' }, { en: 'glasses', vi: 'kính' },
+    { en: 'gloves', vi: 'găng tay' }, { en: 'scarf', vi: 'khăn quàng' }, { en: 'belt', vi: 'thắt lưng' },
+  ]},
+  { theme: 'Transport — Phương tiện', words: [
+    { en: 'car', vi: 'ô tô' }, { en: 'bus', vi: 'xe buýt' }, { en: 'bike', vi: 'xe đạp' },
+    { en: 'train', vi: 'tàu hỏa' }, { en: 'plane', vi: 'máy bay' }, { en: 'boat', vi: 'thuyền' },
+    { en: 'ship', vi: 'tàu thủy' }, { en: 'motorbike', vi: 'xe máy' }, { en: 'taxi', vi: 'taxi' },
+    { en: 'truck', vi: 'xe tải' }, { en: 'helicopter', vi: 'trực thăng' }, { en: 'rocket', vi: 'tên lửa' },
+  ]},
+  { theme: 'Feelings — Cảm xúc', words: [
+    { en: 'happy', vi: 'vui' }, { en: 'sad', vi: 'buồn' }, { en: 'angry', vi: 'tức giận' },
+    { en: 'tired', vi: 'mệt' }, { en: 'scared', vi: 'sợ hãi' }, { en: 'excited', vi: 'hào hứng' },
+    { en: 'hungry', vi: 'đói' }, { en: 'thirsty', vi: 'khát' }, { en: 'bored', vi: 'chán' },
+    { en: 'surprised', vi: 'ngạc nhiên' }, { en: 'proud', vi: 'tự hào' }, { en: 'shy', vi: 'nhút nhát' },
+  ]},
+  { theme: 'Shapes & Sizes — Hình & Cỡ', words: [
+    { en: 'circle', vi: 'hình tròn' }, { en: 'square', vi: 'hình vuông' }, { en: 'triangle', vi: 'hình tam giác' },
+    { en: 'star', vi: 'ngôi sao' }, { en: 'heart', vi: 'trái tim' }, { en: 'big', vi: 'to' },
+    { en: 'small', vi: 'nhỏ' }, { en: 'long', vi: 'dài' }, { en: 'short', vi: 'ngắn' },
+    { en: 'tall', vi: 'cao' }, { en: 'wide', vi: 'rộng' }, { en: 'round', vi: 'tròn' },
+  ]},
+  { theme: 'Vegetables — Rau củ', words: [
+    { en: 'carrot', vi: 'cà rốt' }, { en: 'potato', vi: 'khoai tây' }, { en: 'tomato', vi: 'cà chua' },
+    { en: 'onion', vi: 'hành' }, { en: 'cabbage', vi: 'bắp cải' }, { en: 'corn', vi: 'ngô' },
+    { en: 'cucumber', vi: 'dưa chuột' }, { en: 'pumpkin', vi: 'bí ngô' }, { en: 'bean', vi: 'đậu' },
+    { en: 'pepper', vi: 'ớt chuông' }, { en: 'mushroom', vi: 'nấm' }, { en: 'garlic', vi: 'tỏi' },
+  ]},
 ];
 
 function buildThemeLessons(theme: string, words: Word[], quizCount: number): SeedLesson[] {
@@ -90,6 +144,75 @@ function buildThemeLessons(theme: string, words: Word[], quizCount: number): See
       return mcQuestion(`"${w.en}" nghĩa là gì?`, w.vi, shuffle(words.filter((x) => x.vi !== w.vi)).slice(0, 3).map((x) => x.vi), `"${w.en}" = ${w.vi}.`);
     });
     lessons.push({ title: `${theme}: Luyện tập ${i}`, module: 'Vocabulary Quiz', estMinutes: 7, xpReward: 18, type: 'MULTIPLE_CHOICE', questions: qs });
+  }
+  return lessons;
+}
+
+// ---------- Ngữ pháp đơn giản (sinh để tăng đa dạng) ----------
+function grammarQuestion(): SeedQuestion {
+  const kind = rint(0, 3);
+  if (kind === 0) {
+    const sing = ['cat', 'dog', 'book', 'apple', 'box', 'car'][rint(0, 5)]!;
+    const plural = sing === 'box' ? 'boxes' : `${sing}s`;
+    return mcQuestion(`Số nhiều của "${sing}" là gì?`, plural, [`${sing}`, `${sing}es`, `many ${sing}`].filter((x) => x !== plural).slice(0, 3), `Thêm -s (hoặc -es) để tạo số nhiều: ${plural}.`);
+  }
+  if (kind === 1) {
+    const subj = ['I', 'He', 'She', 'They', 'We', 'It'][rint(0, 5)]!;
+    const be = subj === 'I' ? 'am' : subj === 'He' || subj === 'She' || subj === 'It' ? 'is' : 'are';
+    return mcQuestion(`Chọn từ đúng: "${subj} ___ happy."`, be, ['am', 'is', 'are'].filter((x) => x !== be), `Với "${subj}" dùng động từ to be: "${be}".`);
+  }
+  if (kind === 2) {
+    const n = rint(2, 9);
+    return mcQuestion(`"I see ___ birds." (có ${n} con) — chọn đúng:`, String(n), [String(n + 1), 'a', 'much'], `Đếm được nên dùng số ${n}.`);
+  }
+  const pairs = [['this', 'gần'], ['that', 'xa']] as const;
+  const p = pairs[rint(0, 1)]!;
+  return mcQuestion(`Vật ở ${p[1]} ta dùng từ nào?`, p[0], p[0] === 'this' ? ['that', 'these', 'those'] : ['this', 'these', 'those'], `"${p[0]}" chỉ vật ở ${p[1]}.`);
+}
+
+/** Sinh `target` bài học Tiếng Anh: flashcard cho mỗi chủ đề + quiz xoay vòng + ngữ pháp. */
+export function buildEnglishLessons(target: number): SeedLesson[] {
+  const lessons: SeedLesson[] = [];
+
+  // Flashcard giới thiệu mỗi chủ đề
+  for (const t of THEMES) {
+    lessons.push({
+      title: `${t.theme}: Học từ mới`,
+      module: 'Vocabulary',
+      estMinutes: 6,
+      xpReward: 15,
+      type: 'FLASHCARD',
+      questions: t.words.map((w) =>
+        mcQuestion(`"${w.en}" nghĩa là gì?`, w.vi, shuffle(t.words.filter((x) => x.vi !== w.vi)).slice(0, 3).map((x) => x.vi), `"${w.en}" = ${w.vi}.`),
+      ),
+    });
+  }
+
+  // Quiz xoay vòng cho tới khi đạt target
+  let i = 0;
+  while (lessons.length < target) {
+    const t = THEMES[i % THEMES.length]!;
+    const round = Math.floor(i / THEMES.length) + 1;
+    const isGrammar = i % 5 === 4; // cứ 5 bài có 1 bài ngữ pháp
+    if (isGrammar) {
+      lessons.push({
+        title: `Ngữ pháp vui ${round}`,
+        module: 'Grammar',
+        estMinutes: 7,
+        xpReward: 18,
+        type: 'MULTIPLE_CHOICE',
+        questions: Array.from({ length: 8 }, () => grammarQuestion()),
+      });
+    } else {
+      const qs: SeedQuestion[] = shuffle(t.words).slice(0, 8).map((w) => {
+        if (Math.random() < 0.5) {
+          return mcQuestion(`Từ tiếng Anh của "${w.vi}" là gì?`, w.en, shuffle(t.words.filter((x) => x.en !== w.en)).slice(0, 3).map((x) => x.en), `"${w.vi}" = "${w.en}".`);
+        }
+        return mcQuestion(`"${w.en}" nghĩa là gì?`, w.vi, shuffle(t.words.filter((x) => x.vi !== w.vi)).slice(0, 3).map((x) => x.vi), `"${w.en}" = ${w.vi}.`);
+      });
+      lessons.push({ title: `${t.theme}: Luyện tập ${round}`, module: 'Vocabulary Quiz', estMinutes: 7, xpReward: 18, type: 'MULTIPLE_CHOICE', questions: qs });
+    }
+    i++;
   }
   return lessons;
 }
