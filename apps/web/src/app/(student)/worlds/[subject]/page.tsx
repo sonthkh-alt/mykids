@@ -54,22 +54,29 @@ export default function SubjectPage({ params }: { params: Promise<{ subject: str
       )}
 
       {/* Chọn / đổi độ khó theo lớp */}
-      <div>
-        <p className="mb-1 text-xs font-bold text-ink/50">Độ khó (theo lớp):</p>
+      <div className="rounded-2xl bg-white p-3 shadow-pop">
+        <p className="mb-2 text-sm font-bold text-ink/70">
+          🎚️ Độ khó — bấm để đổi <span className="font-normal text-ink/40">(lớp càng cao càng khó)</span>
+        </p>
         <div className="flex gap-2">
           {[3, 4, 5, 6].map((g) => (
             <button
               key={g}
               onClick={() => { setGrade(g); setOpenId(null); }}
               className={cn(
-                'h-10 flex-1 rounded-xl font-display text-sm font-bold transition-colors',
-                activeGrade === g ? 'bg-brand text-white' : 'bg-black/5 text-ink/60',
+                'h-11 flex-1 rounded-xl font-display text-sm font-bold transition-colors',
+                activeGrade === g
+                  ? 'bg-brand text-white shadow-pop'
+                  : 'bg-black/5 text-ink/60 hover:bg-black/10',
               )}
             >
               Lớp {g}
             </button>
           ))}
         </div>
+        <p className="mt-2 text-xs text-ink/40">
+          Đang xem nội dung <b className="text-brand">Lớp {activeGrade}</b>.
+        </p>
       </div>
 
       {subject.toLowerCase() === 'math' && (
