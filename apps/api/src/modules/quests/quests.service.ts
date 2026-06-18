@@ -1,7 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { localDateKey } from '@ai-academy/utils';
-import type { DailyQuestDto, QuestType } from '@ai-academy/types';
+import type { DailyQuestDto, QuestType, Subject } from '@ai-academy/types';
+
+/** Hoàn thành 1 bài học môn này sẽ tự hoàn thành nhiệm vụ tương ứng. */
+const SUBJECT_TO_QUEST: Partial<Record<Subject, QuestType>> = {
+  ENGLISH: 'ENGLISH',
+  MATH: 'MATH',
+  READING: 'READING',
+};
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { StudentsService } from '../students/students.service';
 import { AiContentService } from '../ai/ai-content.service';
@@ -91,7 +98,42 @@ export class QuestsService {
     return created;
   }
 
-  /** Hoàn thành 1 quest → phát sự kiện để gamification cộng XP. */
+  /**
+   * Tự động hoàn thành nhiệm vụ học thuật (Anh/Toán/Đọc) khi học xong 1 bài
+   * đúng môn. Gọi từ QuestsListener khi nhận sự kiện LESSON_COMPLETED.
+   */
+  async autoCompleteForSubject(studentId: string, subject: Subject): Promise<void> {
+    const questType = SUBJECT_TO_QUEST[subject];
+    if (!questType) return;
+
+    const student = await this.prisma.student.findUnique({ where: { id: studentId } });
+    if (!student) return;
+    const dateKey = localDateKey(new Date(), student.timeZone);
+
+    const sq = await this.prisma.studentDailyQuest.findFirst({
+      where: {
+        studentId,
+        dateKey,
+        status: { not: 'COMPLETED' },
+        quest: { type: questType },
+      },
+      include: { quest: true },
+    });
+    if (!sq) return;
+
+    await this.prisma.studentDailyQuest.update({
+      where: { id: sq.id },
+      data: { status: 'COMPLETED', progress: 100, completedAt: new Date() },
+    });
+    this.events.emit('quest.completed', {
+      studentId,
+      questId: sq.questId,
+      rewardXp: sq.quest.rewardXp,
+    });
+    this.logger.log(`Tự hoàn thành nhiệm vụ ${questType} cho ${studentId}`);
+  }
+
+  /** Hoàn thành 1 quest thủ công (nhiệm vụ ngoài đời: Vận động/Sáng tạo). */
   async complete(studentDailyQuestId: string): Promise<{ rewardXp: number }> {
     const sq = await this.prisma.studentDailyQuest.update({
       where: { id: studentDailyQuestId },

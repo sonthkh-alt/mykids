@@ -27,13 +27,16 @@ export default function SubjectPage({ params }: { params: Promise<{ subject: str
   const { subject } = use(params);
   const { data: student } = useActiveStudent();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [grade, setGrade] = useState<number | null>(null);
+
+  const activeGrade = grade ?? student?.grade ?? 4;
 
   const { data: courses } = useQuery({
-    queryKey: ['courses', subject, student?.grade],
+    queryKey: ['courses', subject, activeGrade],
     enabled: !!student,
     queryFn: () =>
       api.get<Course[]>(
-        `/learning/courses?subject=${subject.toUpperCase()}&grade=${student!.grade}`,
+        `/learning/courses?subject=${subject.toUpperCase()}&grade=${activeGrade}`,
       ),
   });
 
@@ -49,6 +52,25 @@ export default function SubjectPage({ params }: { params: Promise<{ subject: str
           {totalLessons} bài học • {courses?.length} tập
         </p>
       )}
+
+      {/* Chọn / đổi độ khó theo lớp */}
+      <div>
+        <p className="mb-1 text-xs font-bold text-ink/50">Độ khó (theo lớp):</p>
+        <div className="flex gap-2">
+          {[3, 4, 5, 6].map((g) => (
+            <button
+              key={g}
+              onClick={() => { setGrade(g); setOpenId(null); }}
+              className={cn(
+                'h-10 flex-1 rounded-xl font-display text-sm font-bold transition-colors',
+                activeGrade === g ? 'bg-brand text-white' : 'bg-black/5 text-ink/60',
+              )}
+            >
+              Lớp {g}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {subject.toLowerCase() === 'math' && (
         <Link href="/arena">
