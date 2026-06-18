@@ -19,7 +19,11 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(prefix);
   app.use(helmet());
-  app.enableCors({ origin: corsOrigins, credentials: true });
+  // '*' => phản chiếu mọi origin (origin: true) để Bearer-token hoạt động cross-site.
+  app.enableCors({
+    origin: corsOrigins.includes('*') ? true : corsOrigins,
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
