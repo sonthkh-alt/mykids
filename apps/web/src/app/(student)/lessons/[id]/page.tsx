@@ -4,15 +4,16 @@ import { use, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import type { XpEventResult } from '@ai-academy/types';
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { useActiveStudent } from '@/hooks/use-active-student';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Celebrate } from '@/components/gamification/celebrate';
 
-interface Option { id: string; text: string }
+interface Option { id: string; text: string; isCorrect: boolean }
 interface Question {
   id: string;
   text: string;
@@ -82,8 +83,8 @@ export default function LessonPlayer({ params }: { params: Promise<{ id: string 
     );
   }
 
-  const isCorrectChoice = (optId: string) =>
-    checked && selected === optId; // hiển thị chọn; đáp án đúng do server xác định
+  const selectedCorrect =
+    checked && !!q.answerOptions.find((o) => o.id === selected)?.isCorrect;
 
   function onCheck() {
     if (selected == null) return;
@@ -139,31 +140,48 @@ export default function LessonPlayer({ params }: { params: Promise<{ id: string 
           <div className="flex flex-col gap-3">
             {q.answerOptions.map((opt) => {
               const isSel = selected === opt.id;
+              // Sau khi kiểm tra: tô xanh đáp án ĐÚNG, tô đỏ ô chọn SAI.
+              const showCorrect = checked && opt.isCorrect;
+              const showWrong = checked && isSel && !opt.isCorrect;
               return (
                 <button
                   key={opt.id}
                   disabled={checked}
                   onClick={() => setSelected(opt.id)}
-                  className={`flex items-center justify-between rounded-2xl border-2 p-4 text-left font-body font-semibold transition-all ${
-                    isSel
-                      ? 'border-brand bg-brand/10 text-ink'
-                      : 'border-black/10 bg-white text-ink/80'
-                  }`}
+                  className={cn(
+                    'flex items-center justify-between rounded-2xl border-2 p-4 text-left font-body font-semibold transition-all',
+                    !checked && isSel && 'border-brand bg-brand/10 text-ink',
+                    !checked && !isSel && 'border-black/10 bg-white text-ink/80',
+                    showCorrect && 'border-brand bg-brand/15 text-ink',
+                    showWrong && 'border-coral bg-coral/15 text-ink',
+                    checked && !showCorrect && !showWrong && 'border-black/10 bg-white text-ink/40',
+                  )}
                 >
                   {opt.text}
-                  {isCorrectChoice(opt.id) && <Check className="h-5 w-5 text-brand" />}
+                  {showCorrect && <Check className="h-5 w-5 text-brand" />}
+                  {showWrong && <X className="h-5 w-5 text-coral" />}
                 </button>
               );
             })}
           </div>
 
-          {checked && q.explanation && (
+          {checked && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl bg-sky/10 p-3 text-sm text-ink/70"
+              className="flex flex-col gap-2"
             >
-              💡 {q.explanation}
+              <div
+                className={cn(
+                  'rounded-xl p-3 text-sm font-bold',
+                  selectedCorrect ? 'bg-brand/15 text-brand' : 'bg-coral/15 text-coral',
+                )}
+              >
+                {selectedCorrect ? 'Chính xác! 🎉' : 'Chưa đúng — đáp án đúng đã được tô xanh 👆'}
+              </div>
+              {q.explanation && (
+                <div className="rounded-xl bg-sky/10 p-3 text-sm text-ink/70">💡 {q.explanation}</div>
+              )}
             </motion.div>
           )}
         </motion.div>
