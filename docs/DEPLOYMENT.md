@@ -12,6 +12,53 @@ Kiến trúc deploy đề xuất:
 
 ---
 
+## 0. Triển khai nhanh (khuyên dùng) — 15 phút
+
+> Mục tiêu: có link web cho các con dùng trên điện thoại/máy tính bảng. Cần 3 tài khoản miễn phí: **Neon** (PostgreSQL), **Upstash** (Redis), **Vercel** (web) + **Railway** (API). Tất cả đều có gói free.
+
+**Bước A — Database (Neon, miễn phí):**
+1. Vào https://neon.tech → đăng nhập GitHub → New Project.
+2. Copy chuỗi **Connection string** (dạng `postgresql://...`). Đây là `DATABASE_URL`.
+
+**Bước B — Redis (Upstash, miễn phí):**
+1. Vào https://upstash.com → Create Database (Redis) → Region gần VN (Singapore).
+2. Copy **Redis URL** (dạng `rediss://...`). Đây là `REDIS_URL`.
+
+**Bước C — API (Railway, dùng Dockerfile sẵn có):**
+1. https://railway.app → New Project → Deploy from GitHub repo → chọn `sonthkh-alt/mykids`.
+2. Settings → Build: Builder = **Dockerfile**, Dockerfile Path = `apps/api/Dockerfile`, Root Directory = `/`.
+3. Variables (dán vào):
+   ```
+   NODE_ENV=production
+   DATABASE_URL=<Neon từ bước A>
+   REDIS_URL=<Upstash từ bước B>
+   JWT_ACCESS_SECRET=<chuỗi ngẫu nhiên 32 ký tự>
+   JWT_REFRESH_SECRET=<chuỗi ngẫu nhiên 32 ký tự khác>
+   CORS_ORIGINS=https://<sẽ điền sau khi có domain web>
+   AI_DEFAULT_MODEL=gpt-4o-mini
+   ```
+   (Sinh secret: chạy `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.)
+4. Deploy. Container tự chạy `prisma migrate deploy`. Railway cấp domain, ví dụ `https://mykids-api.up.railway.app`.
+5. **Seed nội dung** (chạy 1 lần từ máy bạn, trỏ vào Neon):
+   ```bash
+   DATABASE_URL="<Neon>" npm run prisma:seed -w @ai-academy/api
+   ```
+   Muốn nhiều nội dung hơn nữa: thêm `SEED_SCALE=2` (gấp đôi số bài Toán/Lập trình).
+
+**Bước D — Web (Vercel):**
+1. https://vercel.com → Add New Project → import `sonthkh-alt/mykids`.
+2. **Root Directory = `/`** (gốc repo). File `vercel.json` ở gốc đã cấu hình sẵn build.
+3. Environment Variable:
+   ```
+   NEXT_PUBLIC_API_URL=https://mykids-api.up.railway.app/api/v1
+   ```
+4. Deploy → nhận domain `https://mykids.vercel.app`.
+5. Quay lại Railway, sửa `CORS_ORIGINS=https://mykids.vercel.app` rồi redeploy API.
+
+**Xong!** Các con vào `https://mykids.vercel.app`, đăng nhập tài khoản phụ huynh `phuhuynh@demo.vn / Parent@123` (hoặc tự đăng ký), rồi học. Bật AI thật bất cứ lúc nào: thêm `OPENAI_API_KEY` vào Variables của API trên Railway.
+
+---
+
 ## 1. Chuẩn bị
 
 - Tài khoản: Vercel, Railway, (tùy chọn) Supabase, OpenAI.
